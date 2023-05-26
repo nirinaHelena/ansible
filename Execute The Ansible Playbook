@@ -1,0 +1,5 @@
+Now you can execute ansible-playbook with the following command.
+
+***sh
+ansible-playbook -i hosts.yaml install-apache.yaml
+***
