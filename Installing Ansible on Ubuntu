@@ -1,0 +1,12 @@
+First, update your system. The following command fetches the latest package:
+
+sudo apt update
+
+Install ansible
+To install ansible run the following command:
+
+sudo apt install ansible -y
+
+Then, check the installed ansible version using the command
+
+ansible --version
