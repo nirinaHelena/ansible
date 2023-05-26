@@ -1,0 +1,97 @@
+-To create ansible playbook, we can change to the directory we created before and create the ansible playbook yaml file with the following command:
+
+***sh
+cd ansible-apache
+vi install-apache.yaml
+***
+---
+-Add the following content to the file
+
+***sh
+- name: Ansible Playbook to Install and Setup Apache on Ubuntu
+  hosts: myservers
+  become: yes
+  tasks:
+    - name: Install latest version of Apache
+      apt: name=apache2 update_cache=yes state=latest
+ 
+    - name: Create document root for domain configured in host variable
+      file:
+        path: "/var/www/{{ http_host }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+ 
+    - name: Copy your index file
+      template:
+        src: "files/index-template.html"
+        dest: "/var/www/{{ http_host }}/index.html"
+ 
+    - name: Set up virtuahHost
+      template:
+        src: "files/apache-template.conf"
+        dest: "/etc/apache2/sites-available/{{ http_conf }}"
+ 
+    - name: Enable site
+      command: a2ensite {{ http_conf }}
+      notify: restart-apache
+ 
+    - name: "UFW firewall allow HTTP on port {{ http_port }}"
+      ufw:
+        rule: allow
+        port: "{{ http_port }}"
+        proto: tcp
+ 
+  handlers:
+    - name: restart-apache
+      service:
+        name: apache2
+        state: restarted
+***
+---
+Along with playbook, we should define two other files, files/apache-template.conf and files/index.template.html. The step below is to create the index page and the virtual host configuration
+
+(from ansible-apache directory)
+
+(from ansible-apache directory)
+
+***sh
+mkdir files
+cd files
+vi index-template.html
+***
+---
+copie in index-template.html
+
+***sh
+<html>
+   <head>
+       <title>{{ http_host }}</title>
+   </head>
+   <body>
+       <h1>Welcome to {{ http_host }}</h1>
+   </body>
+</html>
+***
+---
+
+-Create the virtual host configuration template:
+
+***sh
+(from ansible-apache/files directory)
+vi apache-template.conf
+***
+---
+Copy the virtual host configuration template below
+
+***sh
+<VirtualHost *:{{ http_port }}>
+   ServerAdmin webmaster@localhost
+   ServerName {{ http_host }}
+   ServerAlias www.{{ http_host }}
+   DocumentRoot /var/www/{{ http_host }}
+   ErrorLog ${APACHE_LOG_DIR}/error.log
+   CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+****
